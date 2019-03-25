@@ -1,0 +1,49 @@
+.new-article-btn {
+    margin-top: 10px;
+  }
+  
+  .fa-github {
+    font-size: 30px;
+  }
+  
+  .git-icon {
+    text-decoration: none;
+    color: #000;
+    -webkit-transition: 0.5s ease-out;
+    -moz-transition:  0.5s ease-out;
+    transition:  0.5s ease-out;
+  }
+  
+  .git-icon:hover {
+    text-decoration: none;
+    color: #2c7df7;
+    -webkit-transform: rotateZ(360deg);
+    -moz-transform: rotateZ(360deg);
+    transform: rotateZ(360deg);
+  }
+  
+  .title-link {
+    text-decoration: none;
+    color: #000;
+  }
+  
+  .title-link:hover {
+    text-decoration: none;
+    color: #2c7df7;
+  }
+  
+  textarea {
+    display: block;
+    height: 200px;
+    font-size: 16px;
+    width: 100%;
+    background-color: #ffffff;
+    border: 1px solid #cfcfcf;
+  }
+  
+  #note {
+    text-transform: uppercase;
+    font-size: 13px;
+    color: #616161;
+    letter-spacing: 1px;
+  }
