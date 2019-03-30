@@ -1,80 +1,78 @@
+// Dependencies
 var express = require("express");
+var exphbs = require('express-handlebars');
+
 var logger = require("morgan");
 var mongoose = require("mongoose");
+var moment = require("moment");
 
-// Our scraping tools
-// Axios is a promised-based http library, similar to jQuery's Ajax method
-// It works on the client and on the server
-var axios = require("axios");
+// Scraping tools
 var cheerio = require("cheerio");
+var axios = require("axios");
 
 // Require all models
 var db = require("./models");
 
+// Initialize Express
 var PORT = process.env.PORT || 3000;
 
-// Initialize Express
 var app = express();
+var exphbs = require("express-handlebars");
+
 
 // Configure middleware
-
 // Use morgan logger for logging requests
 app.use(logger("dev"));
 // Parse request body as JSON
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 // Make public a static folder
 app.use(express.static("public"));
+app.engine('handlebars', exphbs({
+  defaultLayout: 'main'
+}));
+app.set('view engine', 'handlebars');
 
 // Connect to the Mongo DB
-mongoose.connect("mongodb://localhost/scraper", { useNewUrlParser: true });
+// mongoose.connect("mongodb://localhost/testScrapeDB", { useNewUrlParser: true });
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/testScrapeDB";
 
-// Routes
-
-// A GET route for scraping the echoJS website
-app.get("/scrape", function(req, res) {
-  // First, we grab the body of the html with axios
-  axios.get("http://www.cnet.com/").then(function(response) {
-    // Then, we load that into cheerio and save it to $ for a shorthand selector
-    var $ = cheerio.load(html);
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
 
-    $(".title-link").each(function(i, element) {
-      
-      var title = $(element).children().text();
-      var link = $(element).attr("href");
-      var snippet = $(element).siblings('p').text().trim();
-      var articleCreated = moment().format("YYYY MM DD hh:mm:ss");
-
-      var result = {
-        title: title,
-        link: link,
-        snippet: snippet,
-        articleCreated: articleCreated,
-        isSaved: false
-      }
-      
-      console.log(result);
-      
-      db.Article.findOne({title:title}).then(function(data) {
-        
-        console.log(data);
-
-        if(data === null) {
-
-          db.Article.create(result).then(function(dbArticle) {
-            res.json(dbArticle);
-          });
-        }
-      }).catch(function(err) {
-          res.json(err);
-      });
-
-    });
-
-  });
+ // Routes
+app.get("/", function(req, res) {
+  res.send(index.html);
 });
 
+// A GET route for scraping the website
+app.get("/scrape", function(req, res) {
+  axios.get("https://www.sfchronicle.com/").then(function(response) {
+    var $ = cheerio.load(response.data);
+
+    $("article h2").each(function(i, element) {
+
+      var result = {};
+
+      result.title = $(this)
+        .children("a")
+        .text();
+      result.link = $(this)
+        .children("a")
+        .attr("href");
+
+      db.Article.create(result)
+        .then(function(dbArticle) {
+          console.log(dbArticle);
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
+    });
+
+    res.send("Scrape Complete");
+  });
+});
 // Route for getting all Articles from the db
 app.get("/articles", function(req, res) {
   
@@ -156,13 +154,6 @@ app.put("/delete/:id", function(req, res) {
     .catch(function(err) {
       res.json(err);
     });
-});
-
-var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
-
-mongoose.Promise = Promise;
-mongoose.connect(MONGODB_URI, {
-  useMongoClient: true
 });
 
 
